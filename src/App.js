@@ -3,7 +3,7 @@ import {
   BrowserRouter,
   Route
 } from 'react-router-dom';
-import PrivateRoute from './hocs/PrivateRoutes';
+import PrivateRoute from './hocs/PrivateRoute';
 import LoginPage from "./routes/login";
 import HomePage from "./routes/home";
 

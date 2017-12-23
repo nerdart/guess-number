@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
-import Auth from "../../services/auth";
+import { LoginUser } from '../../services/dataService';
 import Form from "../styled/Form";
 import Fieldset from "../styled/Fieldset";
 import Legend from "../styled/Legend";
@@ -12,9 +12,9 @@ class Login extends Component {
 	constructor(props) {
 		super(props);
 		this.state = { 
-			email: "", 
-			password: "", 
-			loginSuccess: false 
+			username: "", 
+			password: "",
+			message: ""
 		};
 		this.handleInputChange = this.handleInputChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
@@ -29,14 +29,21 @@ class Login extends Component {
 	}
 	handleSubmit(event) {
 		event.preventDefault();
+		this.setState({message: ""})
 		if (this.state.email !== "" && this.state.password !== "") {
-			Auth.authenticate(() => {
-				this.setState({ loginSuccess: true });
-			});
+			LoginUser(this.state).then((response) => {
+				console.log(response)
+				if(response.code) {
+					this.setState({loginSuccess: true});
+				} else {
+					this.setState({message: response.message})
+				}
+    	});
 		}
 	}
 	render() {
-		const { loginSuccess } = this.state;
+		const { loginSuccess, username, password } = this.state;
+		
 		if (loginSuccess) {
 			return <Redirect to="/" />;
 		}
@@ -45,21 +52,22 @@ class Login extends Component {
 				<Form onSubmit={this.handleSubmit}>
 					<Fieldset>
 						<Legend>Sign In</Legend>
-						<Label>Email</Label>
+						<Label>Username</Label>
 						<Input
 							type="text"
-							name="email"
-							value={this.state.email}
+							name="username"
+							value={username}
 							onChange={this.handleInputChange}
 						/>
 						<Label>Password</Label>
 						<Input
 							type="password"
 							name="password"
-							value={this.state.password}
+							value={password}
 							onChange={this.handleInputChange}
 						/>
 					</Fieldset>
+					<p>{this.state.message}</p>
 					<Button type="submit" >
 						Sign in
 					</Button>

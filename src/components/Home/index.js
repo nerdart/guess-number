@@ -2,20 +2,29 @@ import React, { Component } from "react";
 import { Redirect } from "react-router-dom";
 import Legend from "../styled/Legend";
 import Form from "../styled/Form";
-import Fieldset from "../styled/Fieldset";
 import Label from "../styled/Label";
 import Input from "../styled/Input";
 import Spacer from "../styled/Spacer";
 import Notice from "../styled/Notice";
 import Button from "../styled/Button";
+import { ValidateUserUniqueId, getGuessCount } from '../../services/dataService';
+import { getToken } from '../../services/localStorage';
 
 class Home extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			value: "",
+			message: "",
 			counter: 3
 		};
+	}
+
+	componentDidMount() {
+		const code = getToken()
+		getGuessCount({code}).then(response => {
+			this.setState({counter: response.code})
+		})
 	}
 
 	handleChange = event => {
@@ -24,12 +33,32 @@ class Home extends Component {
 
 	handleSubmit = event => {
 		event.preventDefault();
-		if (!this.state.value && this.state.value === "95") {
-			console.log("true");
-		} else {
-			this.setState({value: ""})
-			this.setState(prevState => ({ counter: prevState.counter - 1 }));
+		const code = getToken()
+		const request = {
+			code,
+			uniqueId: this.state.value
 		}
+		
+		ValidateUserUniqueId(request).then((response) => {
+			console.log(response);
+			if(response.status) {
+				this.setState({
+					counter: 3,
+					message: response.message
+				})
+			}else if(!response.count) {
+				this.setState({
+					value: "",
+					counter: 0
+				})
+			} else {
+				this.setState({
+					value: "",
+					counter: response.count,
+					message: ""
+				})
+			}
+		})
 	};
 
 	render() {
@@ -41,7 +70,11 @@ class Home extends Component {
 			<div>
 				<Spacer />
 				<Notice>
-					<p>You have {this.state.counter} attempts</p>
+					{
+						this.state.message ? 
+						<p>{this.state.message}</p> :
+						<p>You have {this.state.counter} attempts</p> 
+					}
 				</Notice>
 				<Spacer />
 				<Form onSubmit={this.handleSubmit}>
